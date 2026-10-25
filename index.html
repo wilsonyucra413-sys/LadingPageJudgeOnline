@@ -117,15 +117,38 @@ input:focus,select:focus{border-color:var(--violet);box-shadow:0 0 0 4px #7c5cff
 button:disabled{opacity:.6;cursor:wait}
 details{border-bottom:1px solid #c3b9f2;padding:1.1rem 0;max-width:46em!important;margin-left:0!important}summary{cursor:pointer;font-weight:700}details p{margin:.6rem 0 0;color:var(--muted)}
 footer{background:var(--ink);color:#B9B4E4;padding:2rem 5vw;font-size:.92rem}
+.demo{background:var(--ink);color:#fff;position:relative;overflow:hidden;background-image:radial-gradient(#ffffff12 1px,transparent 1px);background-size:28px 28px;text-align:center}
+.demo::before{content:"";position:absolute;width:44rem;height:44rem;max-width:120vw;left:50%;top:58%;transform:translate(-50%,-50%);background:var(--violet);filter:blur(140px);opacity:.35;border-radius:50%}
+.demo>*{position:relative}
+.demo h2{margin-bottom:.8rem}
+.demo .lead{color:#CBC6F0;margin-top:0!important;margin-bottom:3rem}
+.demo-frame{max-width:980px!important;border-radius:1.3rem;padding:3px;background:conic-gradient(from var(--a),var(--cyan),var(--violet),var(--pink),var(--warn),var(--cyan));animation:spin 6s linear infinite;box-shadow:0 50px 100px -30px #000,0 0 90px -10px #7c5cffaa;transform:perspective(1400px) rotateX(10deg) scale(.92);opacity:.5;transition:transform 1s cubic-bezier(.2,.8,.2,1),opacity 1s}
+.demo-frame.in{transform:none;opacity:1}
+.demo-win{background:#0a0820;border-radius:calc(1.3rem - 3px);overflow:hidden}
+.demo-bar{display:flex;align-items:center;gap:.4rem;padding:.7rem 1rem;background:#120e35;color:#9C98C8;font:500 .8rem "JetBrains Mono",monospace}
+.demo-bar i{width:.7rem;height:.7rem;border-radius:50%}.demo-bar i:nth-child(1){background:var(--bad)}.demo-bar i:nth-child(2){background:var(--warn)}.demo-bar i:nth-child(3){background:var(--ok)}.demo-bar span{margin:0 auto;padding-right:2.4rem}
+.demo-stage{position:relative;aspect-ratio:16/9;background:#000}
+.demo-stage video{width:100%;height:100%;display:block;object-fit:contain;background:#000}
+.demo-play{position:absolute;inset:0;display:grid;place-items:center;align-content:center;gap:1.1rem;width:100%;background:linear-gradient(#0e0b2455,#0e0b24d0);border:0;color:#fff;cursor:pointer;font:700 1.1rem "Plus Jakarta Sans",sans-serif;transition:opacity .4s}
+.demo-play.off{opacity:0;pointer-events:none}
+.play-ico{width:5.5rem;height:5.5rem;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--pink));display:grid;place-items:center;font-size:2rem;padding-left:.3rem;position:relative;box-shadow:0 0 40px -4px var(--violet);transition:transform .2s}
+.play-ico::before,.play-ico::after{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid var(--violet);animation:ring 2.4s ease-out infinite}
+.play-ico::after{animation-delay:1.2s}
+.demo-play:hover .play-ico{transform:scale(1.1)}
+@keyframes ring{to{transform:scale(1.9);opacity:0}}
+.demo-chips{display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap;margin-top:2.4rem}
+.demo-chips span{padding:.5rem 1.1rem;border-radius:2rem;background:#ffffff12;border:1px solid #ffffff22;font-weight:600;font-size:.92rem}
+.demo-chips b{color:var(--ok);margin-right:.4rem}
+.demo-cta{margin-top:2rem}
 @media(max-width:900px){.hero-in,.bento,.who,.steps,.plans,.reg{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.bento .w2,.bento .tall{grid-column:auto;grid-row:auto}.top nav{display:none}.top .btn{margin-left:auto}.steps::before{display:none}.two,#pick{grid-template-columns:1fr}.console{transform:none}.float{display:none}.plan.hot{padding-block:2rem}}
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.ln{opacity:1;transform:none}html{scroll-behavior:auto}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.demo-frame{transform:none;opacity:1}.ln{opacity:1;transform:none}html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
 <div class="progress" id="progress"></div>
 <header class="top">
   <a class="logo" href="#inicio"><span class="mark">&lt;/&gt;</span>Judge</a>
-  <nav><a href="#funciones">Funciones</a><a href="#proceso">Cómo funciona</a><a href="#planes">Planes</a><a href="#preguntas">Preguntas</a></nav>
+  <nav><a href="#demo">Demo</a><a href="#funciones">Funciones</a><a href="#proceso">Cómo funciona</a><a href="#planes">Planes</a><a href="#preguntas">Preguntas</a></nav>
   <a class="btn sm" href="#registro">Registrar mi institución</a>
 </header>
 
@@ -137,7 +160,7 @@ footer{background:var(--ink);color:#B9B4E4;padding:2rem 5vw;font-size:.92rem}
       <p class="tag">Juez online para programación competitiva</p>
       <h1><span class="ln" style="--d:.1s">Cada envío,</span><span class="ln" style="--d:.25s">juzgado al</span><span class="ln" style="--d:.4s">instante.</span></h1>
       <p class="sub">Judge ejecuta el código de tus estudiantes contra tus casos de prueba y responde con un veredicto en segundos. Para universidades, colegios y clubs de programación.</p>
-      <div class="cta"><a class="btn" href="#registro">Empezar gratis</a><a class="btn ghost" href="#planes">Ver planes</a></div>
+      <div class="cta"><a class="btn" href="#registro">Empezar gratis</a><a class="btn ghost" href="#demo">▶ Ver demo</a></div>
       <p class="mini">Plan Free: 30 días, sin tarjeta.</p>
     </div>
     <div class="stage">
@@ -164,6 +187,23 @@ footer{background:var(--ink);color:#B9B4E4;padding:2rem 5vw;font-size:.92rem}
   <div><strong data-count="1000">0</strong><span>problemas en tu banco, hasta</span></div>
   <div><strong data-count="5000">0</strong><span>usuarios por institución, hasta</span></div>
   <div><strong data-count="100000">0</strong><span>envíos por plan, hasta</span></div>
+</section>
+
+<section id="demo" class="sec demo">
+  <p class="tag">Demo en video</p>
+  <h2>Míralo en acción</h2>
+  <p class="lead">Así se envía una solución, se juzga y se actualiza el ranking en segundos.</p>
+  <div class="demo-frame">
+    <div class="demo-win">
+      <div class="demo-bar"><i></i><i></i><i></i><span>Judge · demo</span></div>
+      <div class="demo-stage">
+        <video id="demoVideo" preload="metadata" playsinline src="https://res.cloudinary.com/dzk9as6ep/video/upload/v1792898315/JudgeOnline_fqppet.mp4#t=0.5"></video>
+        <button class="demo-play" id="demoPlay" type="button" aria-label="Reproducir el video de demostración"><span class="play-ico">▶</span><span>Ver demo</span></button>
+      </div>
+    </div>
+  </div>
+  <div class="demo-chips"><span><b>✓</b>Veredicto en segundos</span><span><b>✓</b>Ranking en vivo</span><span><b>✓</b>Sin instalar nada</span></div>
+  <p class="demo-cta"><a class="btn" href="#registro">Quiero probarlo gratis</a></p>
 </section>
 
 <section id="funciones" class="sec">
@@ -286,6 +326,11 @@ document.getElementById("plans").innerHTML = PLANS.map((p, i) => `
 document.getElementById("pick").innerHTML = PLANS.map((p, i) => `
   <label><input type="radio" name="plan" value="${p.codePlan}" ${i === 0 ? "checked" : ""}><span><strong>${p.name}</strong><br>${money(p)}</span></label>`).join("");
 
+// Si el enlace trae ?plan=premium-v1, deja ese plan marcado en el formulario
+const planUrl = new URLSearchParams(location.search).get("plan");
+const planRadio = planUrl && document.querySelector(`input[name=plan][value="${CSS.escape(planUrl)}"]`);
+if (planRadio) planRadio.checked = true;
+
 const form = document.getElementById("form");
 const msg = document.getElementById("msg");
 const btn = document.getElementById("submit");
@@ -302,7 +347,7 @@ const io = new IntersectionObserver(es => es.forEach(x => {
   if (x.target.dataset.count) countUp(x.target);
   io.unobserve(x.target);
 }), { threshold: .4 });
-document.querySelectorAll(".plan, [data-count]").forEach(el => io.observe(el));
+document.querySelectorAll(".plan, [data-count], .demo-frame").forEach(el => io.observe(el));
 
 function countUp(el) {
   const end = +el.dataset.count, t0 = performance.now();
@@ -417,6 +462,11 @@ setInterval(() => {
     if (i > 0) { row.classList.remove("hit"); void row.offsetWidth; row.classList.add("hit"); }
   });
 }, 3000);
+
+// Video de demostración: el botón central lo reproduce y luego aparecen los controles
+const demoVideo = document.getElementById("demoVideo"), demoPlay = document.getElementById("demoPlay");
+demoPlay.addEventListener("click", () => { demoPlay.classList.add("off"); demoVideo.controls = true; demoVideo.play().catch(() => {}); });
+demoVideo.addEventListener("ended", () => { demoVideo.controls = false; demoPlay.classList.remove("off"); });
 </script>
 </body>
 </html>
