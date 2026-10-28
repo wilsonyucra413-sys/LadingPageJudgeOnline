@@ -283,24 +283,45 @@ const SUPABASE_URL = "https://yhwkkptwpwywxrdzqziy.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_YmJjXoALvymZJcfFRSpdag_yBxO1NXO";
 
 const PLANS = [
-  { name: "Free", codePlan: "free-v1", price: 0, durationDays: 30,
-    planLimits: [
-      { codePlanLimit: "free-contests-v1", resource: "contests", limit: 3 },
-      { codePlanLimit: "free-problems-v1", resource: "problems", limit: 20 },
-      { codePlanLimit: "free-users-v1", resource: "users", limit: 50 },
-      { codePlanLimit: "free-submissions-v1", resource: "submissions", limit: 500 }] },
-  { name: "Premium", codePlan: "premium-v1", price: 199, durationDays: 30,
-    planLimits: [
-      { codePlanLimit: "premium-contests-v1", resource: "contests", limit: 20 },
-      { codePlanLimit: "premium-problems-v1", resource: "problems", limit: 200 },
-      { codePlanLimit: "premium-users-v1", resource: "users", limit: 500 },
-      { codePlanLimit: "premium-submissions-v1", resource: "submissions", limit: 10000 }] },
-  { name: "Enterprise", codePlan: "enterprise-v1", price: 499, durationDays: 30,
-    planLimits: [
-      { codePlanLimit: "enterprise-contests-v1", resource: "contests", limit: 100 },
-      { codePlanLimit: "enterprise-problems-v1", resource: "problems", limit: 1000 },
-      { codePlanLimit: "enterprise-users-v1", resource: "users", limit: 5000 },
-      { codePlanLimit: "enterprise-submissions-v1", resource: "submissions", limit: 100000 }] }
+  {
+    name: "Free",
+    codePlan: "free-v1",
+    price: 0,
+    durationDays: 30,
+    state: "Activo",
+    PlanLimits: [
+      { codePlanLimit: "free-contests-v1", resource: "contests", limit: 3, state: "Activo", codePlan: "free-v1" },
+      { codePlanLimit: "free-problems-v1", resource: "problems", limit: 20, state: "Activo", codePlan: "free-v1" },
+      { codePlanLimit: "free-users-v1", resource: "users", limit: 50, state: "Activo", codePlan: "free-v1" },
+      { codePlanLimit: "free-submissions-v1", resource: "submissions", limit: 500, state: "Activo", codePlan: "free-v1" }
+    ]
+  },
+  {
+    name: "Premium",
+    codePlan: "premium-v1",
+    price: 199,
+    durationDays: 30,
+    state: "Activo",
+    PlanLimits: [
+      { codePlanLimit: "premium-contests-v1", resource: "contests", limit: 20, state: "Activo", codePlan: "premium-v1" },
+      { codePlanLimit: "premium-problems-v1", resource: "problems", limit: 200, state: "Activo", codePlan: "premium-v1" },
+      { codePlanLimit: "premium-users-v1", resource: "users", limit: 500, state: "Activo", codePlan: "premium-v1" },
+      { codePlanLimit: "premium-submissions-v1", resource: "submissions", limit: 10000, state: "Activo", codePlan: "premium-v1" }
+    ]
+  },
+  {
+    name: "Enterprise",
+    codePlan: "enterprise-v1",
+    price: 499,
+    durationDays: 30,
+    state: "Activo",
+    PlanLimits: [
+      { codePlanLimit: "enterprise-contests-v1", resource: "contests", limit: 100, state: "Activo", codePlan: "enterprise-v1" },
+      { codePlanLimit: "enterprise-problems-v1", resource: "problems", limit: 1000, state: "Activo", codePlan: "enterprise-v1" },
+      { codePlanLimit: "enterprise-users-v1", resource: "users", limit: 5000, state: "Activo", codePlan: "enterprise-v1" },
+      { codePlanLimit: "enterprise-submissions-v1", resource: "submissions", limit: 100000, state: "Activo", codePlan: "enterprise-v1" }
+    ]
+  }
 ];
 const LABELS = { contests: "Concursos", problems: "Problemas", users: "Usuarios", submissions: "Envíos" };
 const CURRENCY = "Bs";
@@ -310,7 +331,7 @@ const BADGES = ["", "Más popular", "Máxima capacidad"];
 const BTNS = ["Empezar gratis", "Elegir Premium", "Elegir Enterprise"];
 
 // Las barras usan escala logarítmica para que Free también se vea frente a Enterprise
-const maxOf = r => Math.max(...PLANS.flatMap(p => p.planLimits.filter(l => l.resource === r).map(l => l.limit)));
+const maxOf = r => Math.max(...PLANS.flatMap(p => p.PlanLimits.filter(l => l.resource === r).map(l => l.limit)));
 const pct = l => Math.max(8, Math.log10(l.limit) / Math.log10(maxOf(l.resource)) * 100);
 
 document.getElementById("plans").innerHTML = PLANS.map((p, i) => `
@@ -318,7 +339,7 @@ document.getElementById("plans").innerHTML = PLANS.map((p, i) => `
     ${BADGES[i] ? `<span class="badge">${BADGES[i]}</span>` : ""}
     <h3>${p.name}</h3>
     <p class="price">${money(p)}<small> / ${p.durationDays} días</small></p>
-    <ul>${p.planLimits.map(l => `<li><div class="row"><span>${LABELS[l.resource]}</span><strong>${l.limit.toLocaleString("es-BO")}</strong></div>
+    <ul>${p.PlanLimits.map(l => `<li><div class="row"><span>${LABELS[l.resource]}</span><strong>${l.limit.toLocaleString("es-BO")}</strong></div>
       <div class="track"><div class="fill" style="--w:${pct(l)}%"></div></div></li>`).join("")}</ul>
     <a class="btn" href="#registro" data-plan="${p.codePlan}">${BTNS[i]}</a>
   </article>`).join("");
