@@ -416,6 +416,21 @@ async function crearSuscripcion(codePlan, d) {
   }
 }
 
+// Busca el tenantId en la respuesta del backend (cualquier mayúscula/minúscula, aunque venga anidado o como texto plano)
+function buscarTenantId(r) {
+  const buscar = x => {
+    if (!x || typeof x !== "object") return null;
+    for (const [k, v] of Object.entries(x)) {
+      if (k.toLowerCase() === "tenantid" && v) return String(v);
+      const hallado = buscar(v);
+      if (hallado) return hallado;
+    }
+    return null;
+  };
+  const guid = /^"?([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})"?$/i.exec((r.raw || "").trim());
+  return buscar(r.data) || (guid ? guid[1] : null);
+}
+
 form.addEventListener("submit", async e => {
   e.preventDefault();
   msg.className = "msg";
@@ -435,6 +450,9 @@ form.addEventListener("submit", async e => {
   btn.disabled = false;
   btn.textContent = "Registrar";
 
+  const tenantId = buscarTenantId(r);
+  const tenantTxt = tenantId ? ` Tu TenantId: ${tenantId}.` : "";
+
   // 2) Supabase solo guarda el registro del formulario; si falla (por ejemplo, correo repetido en un reintento), no invalida nada
   if (r.status === 200 || r.status === 202) {
     db.rpc("registrar_suscripcion", {
@@ -444,11 +462,11 @@ form.addEventListener("submit", async e => {
   }
 
   if (r.status === 200) {
-    msg.textContent = `¡Listo, ${d.name}! ${d.org} quedó activo en el plan ${plan.name}. Ya puedes iniciar sesión con ${d.email}.`;
+    msg.textContent = `¡Listo, ${d.name}! ${d.org} quedó activo en el plan ${plan.name}. Ya puedes iniciar sesión con ${d.email}.${tenantTxt}`;
     msg.classList.add("ok");
     form.reset();
   } else if (r.status === 202) {
-    msg.textContent = "Tu registro quedó pendiente de aprovisionamiento. Vuelve a enviar el formulario en unos segundos para reintentar.";
+    msg.textContent = "Tu registro quedó pendiente de aprovisionamiento." + tenantTxt + " Vuelve a enviar el formulario en unos segundos para reintentar.";
     msg.classList.add("warn");
   } else if (r.status === 409) {
     msg.textContent = "Ese correo ya está registrado. Inicia sesión o usa otro correo.";
