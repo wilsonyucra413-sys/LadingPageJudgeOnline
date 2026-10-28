@@ -113,7 +113,7 @@ input:focus,select:focus{border-color:var(--violet);box-shadow:0 0 0 4px #7c5cff
 .pick{border:0;padding:0;margin:0}#pick{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;margin-top:.4rem}
 #pick label{border:2px solid var(--line);border-radius:.8rem;padding:.7rem;cursor:pointer;grid-template-columns:auto 1fr;align-items:center;gap:.5rem;font-size:.88rem;font-weight:500;transition:border-color .15s,background .15s}
 #pick label:has(input:checked){border-color:var(--violet);background:var(--lilac)}#pick input{accent-color:var(--violet)}
-.msg{margin:0;min-height:1.3em;font-weight:600;font-size:.92rem}.msg.bad{color:#C73246}.msg.ok{color:#0A8A62}
+.msg{margin:0;min-height:1.3em;font-weight:600;font-size:.92rem}.msg.bad{color:#C73246}.msg.ok{color:#0A8A62}.msg.warn{color:#8A5C00}
 button:disabled{opacity:.6;cursor:wait}
 details{border-bottom:1px solid #c3b9f2;padding:1.1rem 0;max-width:46em!important;margin-left:0!important}summary{cursor:pointer;font-weight:700}details p{margin:.6rem 0 0;color:var(--muted)}
 footer{background:var(--ink);color:#B9B4E4;padding:2rem 5vw;font-size:.92rem}
@@ -258,7 +258,7 @@ footer{background:var(--ink);color:#B9B4E4;padding:2rem 5vw;font-size:.92rem}
         <label>Tu nombre<input name="name" required minlength="3" autocomplete="name"></label>
         <label>Correo<input type="email" name="email" required autocomplete="email"></label>
       </div>
-      <label>Contraseña<input type="password" name="password" required minlength="8" autocomplete="new-password" placeholder="Mínimo 8 caracteres"></label>
+      <label>Contraseña<input type="password" name="password" required minlength="12" maxlength="128" autocomplete="new-password" placeholder="Mínimo 12 caracteres"></label>
       <p id="msg" class="msg" role="status"></p>
       <button class="btn" id="submit" type="submit">Registrar</button>
     </form>
@@ -281,6 +281,9 @@ footer{background:var(--ink);color:#B9B4E4;padding:2rem 5vw;font-size:.92rem}
 // ===== Configuración de Supabase (Project Settings > API) =====
 const SUPABASE_URL = "https://yhwkkptwpwywxrdzqziy.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_YmJjXoALvymZJcfFRSpdag_yBxO1NXO";
+
+// ===== Backend (dev tunnel) =====
+const BACKEND_URL = "https://cnff2wb4-7290.brs.devtunnels.ms";
 
 const PLANS = [
   {
@@ -390,29 +393,77 @@ document.querySelectorAll(".bento article").forEach(a => a.addEventListener("poi
 // ===== Registro en Supabase =====
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// POST /api/Subscription/crear; el encabezado X-Tunnel... evita la página de aviso del dev tunnel.
+// Devuelve { status, data, raw } para poder mostrar un mensaje según el código HTTP (status 0 = sin conexión).
+async function crearSuscripcion(codePlan, d) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 45000); // aprovisionar crea varias bases y puede tardar
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/Subscription/crear`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Tunnel-Skip-AntiPhishing-Page": "true" },
+      body: JSON.stringify({ codePlan, user: { name: d.name, email: d.email, password: d.password } }),
+      signal: ctrl.signal
+    });
+    const raw = await res.text();
+    let data = null;
+    try { data = raw ? JSON.parse(raw) : null; } catch { /* respuesta de texto plano */ }
+    return { status: res.status, data, raw };
+  } catch (err) {
+    return { status: 0, data: null, raw: String(err) };
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 form.addEventListener("submit", async e => {
   e.preventDefault();
   msg.className = "msg";
   if (!form.checkValidity()) { form.reportValidity(); return; }
   const d = Object.fromEntries(new FormData(form));
+  if (d.password.length < 12) {
+    msg.textContent = "La contraseña debe tener al menos 12 caracteres.";
+    msg.classList.add("bad"); return;
+  }
   const plan = PLANS.find(p => p.codePlan === d.plan);
   const codigo = "JUDGE-" + Math.random().toString(36).slice(2, 8).toUpperCase();
   btn.disabled = true;
   btn.textContent = "Registrando…";
-  // La función SQL registrar_suscripcion cifra la contraseña antes de guardarla
-  const { error } = await db.rpc("registrar_suscripcion", {
-    p_codigo: codigo, p_organizacion: d.org, p_tipo: d.type, p_nombre: d.name, p_correo: d.email,
-    p_password: d.password, p_code_plan: plan.codePlan, p_precio: plan.price, p_duracion_dias: plan.durationDays
-  });
+
+  // 1) Primero el backend: es quien crea el tenant real
+  const r = await crearSuscripcion(plan.codePlan, d);
   btn.disabled = false;
   btn.textContent = "Registrar";
-  if (error) {
-    msg.textContent = error.code === "23505" ? "Ese correo ya está registrado." : "No se pudo registrar. Revisa tus datos e inténtalo de nuevo.";
-    msg.classList.add("bad"); return;
+
+  // 2) Supabase solo guarda el registro del formulario; si falla (por ejemplo, correo repetido en un reintento), no invalida nada
+  if (r.status === 200 || r.status === 202) {
+    db.rpc("registrar_suscripcion", {
+      p_codigo: codigo, p_organizacion: d.org, p_tipo: d.type, p_nombre: d.name, p_correo: d.email,
+      p_password: d.password, p_code_plan: plan.codePlan, p_precio: plan.price, p_duracion_dias: plan.durationDays
+    }).then(({ error }) => { if (error) console.warn("Supabase:", error.message); });
   }
-  msg.textContent = `¡Listo, ${d.name}! ${d.org} quedó en el plan ${plan.name}. Tu código: ${codigo}.`;
-  msg.classList.add("ok");
-  form.reset();
+
+  if (r.status === 200) {
+    msg.textContent = `¡Listo, ${d.name}! ${d.org} quedó activo en el plan ${plan.name}. Ya puedes iniciar sesión con ${d.email}.`;
+    msg.classList.add("ok");
+    form.reset();
+  } else if (r.status === 202) {
+    msg.textContent = "Tu registro quedó pendiente de aprovisionamiento. Vuelve a enviar el formulario en unos segundos para reintentar.";
+    msg.classList.add("warn");
+  } else if (r.status === 409) {
+    msg.textContent = "Ese correo ya está registrado. Inicia sesión o usa otro correo.";
+    msg.classList.add("bad");
+  } else if (r.status === 400) {
+    const detalle = r.data && r.data.errors ? Object.values(r.data.errors).flat().join(" ")
+                  : (typeof r.data === "string" ? r.data : (r.raw || "Revisa los datos."));
+    msg.textContent = "Revisa los datos: " + detalle;
+    msg.classList.add("bad");
+  } else {
+    msg.textContent = r.status === 0
+      ? "No se pudo contactar al servidor. Revisa tu conexión e inténtalo de nuevo."
+      : `No se pudo completar el registro (HTTP ${r.status}).`;
+    msg.classList.add("bad");
+  }
 });
 
 // ===== Animación del juez en el hero =====
